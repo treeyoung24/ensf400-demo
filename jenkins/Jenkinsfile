@@ -14,6 +14,11 @@ pipeline {
    }
 
   stages {
+    stage('Build Docker Image') {
+      steps {
+          sh "docker build -t my-app:pr-${env.BUILD_NUMBER} ."
+      }
+    }
 
     // build the war file (the binary).  This is the only
     // place that happens.
