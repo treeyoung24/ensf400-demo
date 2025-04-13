@@ -18,15 +18,13 @@ pipeline {
     // build the war file (the binary).  This is the only
     // place that happens.
     stage('Build') {
-      environment {
-        // Override JAVA_HOME to use JDK 11 for this stage
-        JAVA_HOME = '/usr/lib/jvm/java-11-openjdk'
-        PATH = "${JAVA_HOME}/bin:${PATH}"
-      }
-      steps {
+    steps {
+        sh 'echo JAVA_HOME is set to $JAVA_HOME'
+        sh 'ls -l $JAVA_HOME'
+        sh 'java -version'
         sh './gradlew clean assemble'
-      }
     }
+}
 
     // run all the unit tests - these do not require anything else
     // to be running and most run very quickly.
