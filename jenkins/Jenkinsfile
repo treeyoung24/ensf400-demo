@@ -1,26 +1,22 @@
-// This jenkinsfile is used to run CI/CD on my local (Windows) box, no VM's needed.
+
 
 pipeline {
 
   agent any
 
-  environment {
-      HTTP_PROXY = 'http://127.0.0.1:9888'
-      JAVA_HOME = '/usr/lib/jvm/java-17-openjdk'
-      PATH = "${JAVA_HOME}/bin:${PATH}"
-  }
+   environment {
+        HTTP_PROXY = 'http://127.0.0.1:9888'
+        JAVA_HOME = '/usr/lib/jvm/java-17-openjdk'
+        PATH = "${JAVA_HOME}/bin:${PATH}"
+   }
 
   stages {
 
     stage('Build Docker Image') {
       steps {
-        script {
-          echo "🏗️ Building Docker image from jenkins/Dockerfile"
-          sh 'docker build -f jenkins/Dockerfile -t pr-build-image .'
-        }
+          sh "docker build -t my-app:pr-${env.BUILD_NUMBER} ."
       }
     }
-
     stage('Build') {
       environment {
         JAVA_HOME = '/usr/lib/jvm/java-11-openjdk'
@@ -28,6 +24,7 @@ pipeline {
       }
       steps {
         sh './gradlew clean assemble'
+
       }
     }
 
@@ -71,30 +68,21 @@ pipeline {
         sh './gradlew jacocoTestReport'
       }
       post {
-        always {
-          junit 'build/test-results/bdd/*.xml'
+          always {
+            junit 'build/test-results/bdd/*.xml'
+          }
         }
-      }
     }
 
     stage('Static Analysis') {
-      environment {
-        JAVA_HOME = '/usr/lib/jvm/java-11-openjdk'
-        PATH = "${JAVA_HOME}/bin:${PATH}"
-      }
-      steps {
-        sh './gradlew sonarqube -Dsonar.host.url=https://literate-xylophone-v6v547x96x442w4v-9000.app.github.dev/ -Dsonar.login="admin" -Dsonar.password="ensf400"'
+        environment {
+          JAVA_HOME = '/usr/lib/jvm/java-11-openjdk'
+          PATH = "${JAVA_HOME}/bin:${PATH}"
+        }      
+      
+      steps{
+        sh './gradlew sonarqube -Dsonar.host.url=https://bug-free-train-977r5wwj74jj2pv6p-9000.app.github.dev/ -Dsonar.login="admin" -Dsonar.password="new_admin"'
       }
     }
   }
-
-  post {
-    success {
-        githubNotify context: 'CI', status: 'SUCCESS', description: 'Build passed'
-    }
-    failure {
-        githubNotify context: 'CI', status: 'FAILURE', description: 'Build failed'
-    }
-  }
-
 }
